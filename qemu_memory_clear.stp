@@ -1,0 +1,76 @@
+#!/usr/bin/stap
+
+function print_bank_line() {
+    printf("\n");
+    printf("\n");
+}
+
+probe process("/usr/bin/qemu-system-x86_64").statement("qemu_opt_get_bool_helper@util/qemu-option.c:393") {
+    printf("@%s\n", probefunc())
+    printf("name:%s\n", $name$)
+    printf("pid:%d, %s\n", pid(), $opt$)
+    print_bank_line()
+}
+
+probe process("/usr/bin/qemu-system-x86_64").statement("opt_set@util/qemu-option.c:550") {
+    printf("@%s\n", probefunc())
+    printf("name:%s\n", $name$)
+    printf("pid:%d, opt:%s\n", pid(), $opt$);
+    print_bank_line()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+probe process("/usr/bin/qemu-system-x86_64").statement("qemu_opt_set_bool@util/qemu-option.c:581") {
+    printf("@%s\n", probefunc())
+    printf("%s\n", $opt$);
+    print_bank_line()
+}
+
+
+
+probe process("/usr/bin/qemu-system-x86_64").function("qemu_opt_parse") {
+    printf("@%s\n", probefunc())
+    printf("%s\n", $opt$);
+    printf("%s\n", $errp$$);
+    print_bank_line();
+}
+
+probe process("/usr/bin/qemu-system-x86_64").function("qemu_opt_parse").return {
+    printf("@%s\n", probefunc())
+    printf("%s\n", $errp$$);
+    print_bank_line();
+}
+
+probe process("/usr/bin/qemu-system-x86_64").statement("qemu_opt_unset@util/qemu-option.c:515") {
+    printf("@%s\n", probefunc())
+    printf("%s\n", $opt$);
+}
+
+
+probe process("/usr/bin/qemu-system-x86_64").function("qemu_opt_del") {
+    printf("@%s\n", probefunc())
+    printf("%s\n", $opt$);
+    print_bank_line()
+}
+
+*/
