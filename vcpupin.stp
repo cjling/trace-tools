@@ -1,0 +1,29 @@
+#!/usr/bin/stap
+
+
+probe process("/lib64/libvirt.so.0").statement("virProcessSetAffinity@util/virprocess.c:448") {
+    printf("%s\n", $pid$)
+    printf("%s\n", execname())
+    printf("libvirtd call sched_setaffinity\n\n")
+}
+
+
+probe process("/lib64/libvirt.so.0").statement("virProcessSetAffinity@util/virprocess.c:457") {
+    printf("%s\n", $pid$)
+    printf("%s\n", execname())
+    printf("vcpupin error\n\n")
+}
+
+
+probe process("/lib64/libvirt.so.0").statement("virProcessSetAffinity@util/virprocess.c:459") {
+    printf("%s\n", $pid$)
+    printf("%s\n", execname())
+    printf("%s\n\n", $mask$)
+}
+
+
+probe kernel.statement("SyS_sched_setaffinity") {
+    printf("call SyS_sched_setaffinity func, pid=%d\n", pid())
+    print_usyms(ubacktrace())
+    printf("%s\n\n", execname())
+}
