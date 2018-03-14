@@ -1,0 +1,15 @@
+#!/usr/bin/stap
+
+probe kernel.statement("SyS_open@fs/open.c:1039") {
+    filename = user_string_quoted($filename);
+    printf("filename: %s, execname: %s\n", filename, execname());
+    printf("flags 1039: %s\n", $flags$);
+
+}
+
+
+probe kernel.statement("SyS_open@fs/open.c:1041") {
+    filename = user_string_quoted($filename);
+    printf("flags 1041: %s\n", $flags$);
+
+}
