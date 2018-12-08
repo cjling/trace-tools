@@ -1,13 +1,43 @@
 #!/usr/bin/stap
 
 function print_time() {
-    printf("%s, %d\n", ctime(), gettimeofday_ns())
+    printf("%s, %d\n", ctime(), gettimeofday_us())
 }
 
-probe kernel.function("SyS_sendto") {
+
+        /* module("veth").function("veth_change_mtu"), */
+        /* module("veth").function("veth_close"), */
+        /* module("veth").function("veth_dellink"), */
+        /* module("veth").function("veth_dev_free"), */
+        /* module("veth").function("veth_dev_init"), */
+        /* module("veth").function("veth_exit"), */
+        /* module("veth").function("veth_get_drvinfo"), */
+        /* module("veth").function("veth_get_ethtool_stats"), */
+        /* module("veth").function("veth_get_iflink"), */
+        /* module("veth").function("veth_get_link_net"), */
+        /* module("veth").function("veth_get_settings"), */
+        /* module("veth").function("veth_get_sset_count"), */
+        /* module("veth").function("veth_get_stats64"), */
+        /* module("veth").function("veth_get_strings"), */
+        /* module("veth").function("veth_init"), */
+        /* module("veth").function("veth_newlink"), */
+        /* module("veth").function("veth_open"), */
+        /* module("veth").function("veth_set_rx_headroom"), */
+        /* module("veth").function("veth_setup"), */
+        /* module("veth").function("veth_stats_one"), */
+        /* module("veth").function("veth_validate"), */
+        /* module("veth").function("veth_xmit"), */
+
+/* module veth */
+probe module("veth").function("veth_dellink"),
+        module("veth").function("veth_get_link_net"),
+        module("veth").function("veth_newlink")
+{
     print_time()
     printf("pid:%d, pid name:%s\n", pid(), pid2execname(pid()))
     printf("ppid:%d,ppid name:%s\n", ppid(), pid2execname(ppid()))
-    print_syms(backtrace())
+    printf("func:%s\n", ppfunc())
+    printf("%s\n", $dev->name$$)
+    /* print_syms(backtrace()) */
     printf("\n\n")
 }
