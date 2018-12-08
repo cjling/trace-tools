@@ -1,0 +1,13 @@
+#!/usr/bin/stap
+
+function print_time() {
+    printf("%s, %d\n", ctime(), gettimeofday_ns())
+}
+
+probe kernel.function("SyS_sendto") {
+    print_time()
+    printf("pid:%d, pid name:%s\n", pid(), pid2execname(pid()))
+    printf("ppid:%d,ppid name:%s\n", ppid(), pid2execname(ppid()))
+    print_syms(backtrace())
+    printf("\n\n")
+}
