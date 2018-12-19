@@ -29,15 +29,46 @@ function print_time() {
         /* module("veth").function("veth_xmit"), */
 
 /* module veth */
-probe module("veth").function("veth_dellink"),
-        module("veth").function("veth_get_link_net"),
-        module("veth").function("veth_newlink")
-{
-    print_time()
-    printf("pid:%d, pid name:%s\n", pid(), pid2execname(pid()))
-    printf("ppid:%d,ppid name:%s\n", ppid(), pid2execname(ppid()))
-    printf("func:%s\n", ppfunc())
-    printf("%s\n", $dev->name$$)
+/* probe module("veth").function("veth_dellink").return, */
+        /* module("veth").function("veth_newlink").return, */
+        /* module("veth").function("veth_set_rx_headroom"), */
+        /* module("veth").function("veth_get_link_net"), */
+        /* module("veth").function("veth_setup") */
+/* { */
+    /* print_time() */
+    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s, id:%d\n", pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex$) */
+    /* printf("func:%s\n, return:%s\n", ppfunc(), $$parms$$) */
+    /* printf("\n") */
+/* } */
+
+/* probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") { */
+    /* printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc()) */
+/* } */
+
+/* probe kernel.function("dev_net_set") { */
+    /* printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc()) */
+    /* printf("dev:%s\n", $dev$$) */
+    /* printf("nd_net:%s\n", $dev->nd_net$$) */
+    /* printf("ifindex:%s\n", $dev->ifindex$$) */
+    /* printf("net:%s\n", $net$$) */
     /* print_syms(backtrace()) */
-    printf("\n\n")
+/* } */
+
+
+
+
+
+
+probe kernel.function("copy_net_ns"),
+        kernel.function("dev_net_set"),
+        kernel.function("dev_change_net_namespace"),
+        kernel.function("unshare_nsproxy_namespaces"),
+        kernel.function("create_new_namespaces"),
+        kernel.function("create_nsproxy"),
+        kernel.function("net_alloc"),
+        kernel.function("setup_net"),
+        kernel.function("list_add_tail_rcu"),
+        kernel.function("SyS_unshare")
+{
+    printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc())
 }
