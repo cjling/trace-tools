@@ -1,57 +1,24 @@
 #!/usr/bin/stap
 
-function print_time() {
-    printf("%s, %d\n", ctime(), gettimeofday_us())
-}
-
-
-        /* module("veth").function("veth_change_mtu"), */
-        /* module("veth").function("veth_close"), */
-        /* module("veth").function("veth_dellink"), */
-        /* module("veth").function("veth_dev_free"), */
-        /* module("veth").function("veth_dev_init"), */
-        /* module("veth").function("veth_exit"), */
-        /* module("veth").function("veth_get_drvinfo"), */
-        /* module("veth").function("veth_get_ethtool_stats"), */
-        /* module("veth").function("veth_get_iflink"), */
-        /* module("veth").function("veth_get_link_net"), */
-        /* module("veth").function("veth_get_settings"), */
-        /* module("veth").function("veth_get_sset_count"), */
-        /* module("veth").function("veth_get_stats64"), */
-        /* module("veth").function("veth_get_strings"), */
-        /* module("veth").function("veth_init"), */
-        /* module("veth").function("veth_newlink"), */
-        /* module("veth").function("veth_open"), */
-        /* module("veth").function("veth_set_rx_headroom"), */
-        /* module("veth").function("veth_setup"), */
-        /* module("veth").function("veth_stats_one"), */
-        /* module("veth").function("veth_validate"), */
-        /* module("veth").function("veth_xmit"), */
-
-/* module veth */
-/* probe module("veth").function("veth_dellink").return, */
-        /* module("veth").function("veth_newlink").return, */
-        /* module("veth").function("veth_set_rx_headroom"), */
-        /* module("veth").function("veth_get_link_net"), */
-        /* module("veth").function("veth_setup") */
-/* { */
-    /* print_time() */
-    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s, id:%d\n", pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex$) */
-    /* printf("func:%s\n, return:%s\n", ppfunc(), $$parms$$) */
-    /* printf("\n") */
+/* function print_time() { */
+    /* printf("%s, %d\n", ctime(), gettimeofday_us()) */
 /* } */
 
 /* probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") { */
     /* printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc()) */
 /* } */
 
-/* probe kernel.function("dev_net_set") { */
-    /* printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc()) */
-    /* printf("dev:%s\n", $dev$$) */
-    /* printf("nd_net:%s\n", $dev->nd_net$$) */
-    /* printf("ifindex:%s\n", $dev->ifindex$$) */
-    /* printf("net:%s\n", $net$$) */
-    /* print_syms(backtrace()) */
+/* probe kernel.function("setup_net") { */
+    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s\n", */
+            /* pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc()) */
+    /* printf("net:%s\n", $net$) */
+    /* printf("user_ns:%s\n", $user_ns$) */
+/* } */
+
+/* probe kernel.function("net_free") { */
+    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s\n", */
+            /* pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc()) */
+    /* printf("net:%s\n", $net$) */
 /* } */
 
 
@@ -59,16 +26,26 @@ function print_time() {
 
 
 
-probe kernel.function("copy_net_ns"),
-        kernel.function("dev_net_set"),
-        kernel.function("dev_change_net_namespace"),
-        kernel.function("unshare_nsproxy_namespaces"),
-        kernel.function("create_new_namespaces"),
-        kernel.function("create_nsproxy"),
-        kernel.function("net_alloc"),
-        kernel.function("setup_net"),
-        kernel.function("list_add_tail_rcu"),
-        kernel.function("SyS_unshare")
+probe module("veth").statement("veth_newlink@drivers/net/veth.c:444")
 {
-    printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc())
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth-pair:%s:%d--%s:%d\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $peer->name$, $peer->ifindex)
+}
+
+probe module("veth").function("veth_dellink")
+{
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s:%d\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex)
+}
+
+probe kernel.function("dev_change_net_namespace")
+{
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s:%d, net:%p to %p\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $dev->nd_net, $net)
+}
+
+probe kernel.function("dev_change_name")
+{
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth_id:%d, veth_old:%s, veth_new:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->ifindex, $dev->name$, $newname$)
 }
