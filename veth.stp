@@ -40,12 +40,12 @@ probe module("veth").function("veth_dellink")
 
 probe kernel.function("dev_change_net_namespace")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s:%d, net:%p to %p\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev:%s:%d, net:%p to %p\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $dev->nd_net, $net)
 }
 
 probe kernel.function("dev_change_name")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth_id:%d, veth_old:%s, veth_new:%s\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev_id:%d, old_name:%s, new_name:%s\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->ifindex, $dev->name$, $newname$)
 }
