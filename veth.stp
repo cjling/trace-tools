@@ -4,9 +4,10 @@
     /* printf("%s, %d\n", ctime(), gettimeofday_us()) */
 /* } */
 
-/* probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") { */
-    /* printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc()) */
-/* } */
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") {
+    printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc())
+    raise(9)
+}
 
 /* probe kernel.function("setup_net") { */
     /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s\n", */
