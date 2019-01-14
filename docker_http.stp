@@ -1,0 +1,42 @@
+#!/usr/bin/stap
+
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/api/server.(*HTTPServer).Serve")
+{
+    print_usyms(ubacktrace());
+    printf("------------------\n\n")
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/cmd/dockerd/hack.(*MalformedHostHeaderOverride).Accept")
+{
+    print_usyms(ubacktrace());
+    printf("------------------\n\n")
+}
+
+probe process("/usr/bin/dockerd").function("net/http.(*conn).serve")
+{
+    print_usyms(ubacktrace());
+    printf("------------------\n\n")
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/api/server.(*Server).makeHTTPHandler.func1") {
+    printf("%s\n", user_string_n($r->Method->str, $r->Method->len))
+    printf("%s\n", user_string_n($r->URL->Path->str, $r->URL->Path->len))
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/pkg/authorization.(*Middleware).WrapHandler.func1") {
+    printf("%s\n", user_string_n($r->Method->str, $r->Method->len))
+    printf("%s\n", user_string_n($r->URL->Path->str, $r->URL->Path->len))
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+
+probe process("/usr/bin/dockerd").function("net/http.(*response).finishRequest")
+{
+        mdelay(5000)
+        print_usyms(ubacktrace())
+        printf("------------------\n\n")
+}
