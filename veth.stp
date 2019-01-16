@@ -1,52 +1,166 @@
 #!/usr/bin/stap
 
-/* function print_time() { */
-    /* printf("%s, %d\n", ctime(), gettimeofday_us()) */
-/* } */
-
-probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") {
-    printf("pid:%d, pid name:%s, func:%s\n", pid(), pid2execname(pid()), ppfunc())
-    raise(9)
+function print_time() {
+    printf("%s, %d\n", ctime(), gettimeofday_us())
 }
 
-/* probe kernel.function("setup_net") { */
-    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s\n", */
-            /* pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc()) */
-    /* printf("net:%s\n", $net$) */
-    /* printf("user_ns:%s\n", $user_ns$) */
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_stack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+
+
+
+
+/* dockerd http handle flow */
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork.(*controller).startExternalKeyListener") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkAdd") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetMaster") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork.(*controller).NewSandbox") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork/osl.NewSandbox") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork/drivers/bridge.(*driver).Join") {
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/daemon.(*Daemon).createSpec") {
+    print_stack()
+}
+
+
+
+
+
+
+
+
+/* runc  */
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork.SetExternalKey") {
+    printf("%s, %s, %s\n", user_string_n($controllerID->str, $controllerID->len), user_string_n($containerID->str, $containerID->len), user_string_n($key->str, $key->len))
+    print_process_info()
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork.sendKey") {
+    print_process_info()
+    print_stack()
+}
+
+
+
+
+
+
+
+/* dockerd receive runc socket message */
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork/osl.mountNetworkNamespace") {
+    printf("base:%s, ln:%s\n", user_string_n($basePath->str, $basePath->len), user_string_n($lnPath->str, $lnPath->len))
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink/nl.getNetlinkSocket") {
+    /* mdelay(6000) */
+    print_stack()
+}
+
+/* probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork/osl.(*networkNamespace).AddInterface") { */
+    /* printf("nlh:%s\n", $n->nlHandle->sockets$$) */
+    /* print_stack() */
 /* } */
 
-/* probe kernel.function("net_free") { */
-    /* printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s\n", */
-            /* pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc()) */
-    /* printf("net:%s\n", $net$) */
-/* } */
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkByName") {
+    printf("find if name:%s\n", user_string_n($name->str, $name->len))
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netns.GetFromPath") {
+    printf("path:%s\n", user_string_n($path->str, $path->len))
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink.(*Handle).LinkSetNsFd") {
+    print_stack()
+}
+
+
+
+/* statechanged */
+probe process("/usr/bin/dockerd").function("syscall.Unmount") {
+    printf("path:%s\n", user_string_n($target->str, $target->len))
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/vishvananda/netlink/nl.(*NetlinkSocket).Close") {
+    print_stack()
+}
 
 
 
 
 
+/* kernel funcs */
+probe kernel.function("setup_net") {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, net:%p\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $net)
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+probe kernel.function("net_free") {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, net:%p\n\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $net)
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
 
 probe module("veth").statement("veth_newlink@drivers/net/veth.c:444")
 {
     printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth-pair:%s:%d--%s:%d\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $peer->name$, $peer->ifindex)
+    print_syms(backtrace())
+    printf("------------------\n\n")
 }
 
 probe module("veth").function("veth_dellink")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s:%d\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, veth:%s:%d\n\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex)
+    print_syms(backtrace())
+    printf("------------------\n\n")
 }
 
 probe kernel.function("dev_change_net_namespace")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev:%s:%d, net:%p to %p\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev:%s:%d, net:%p to %p\n\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $dev->nd_net, $net)
+    print_syms(backtrace())
+    printf("------------------\n\n")
 }
 
 probe kernel.function("dev_change_name")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev_id:%d, old_name:%s, new_name:%s\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev_id:%d, old_name:%s, new_name:%s\n\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->ifindex, $dev->name$, $newname$)
+    print_syms(backtrace())
+    printf("------------------\n\n")
 }
