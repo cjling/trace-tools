@@ -55,6 +55,10 @@ probe process("/usr/bin/dockerd").function("github.com/docker/docker/daemon.(*Da
 
 
 /* runc  */
+probe process("/usr/bin/docker-runc").function("os/exec.(*Cmd).Start") {
+    print_process_info()
+    print_stack()
+}
 probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork.SetExternalKey") {
     printf("%s, %s, %s\n", user_string_n($controllerID->str, $controllerID->len), user_string_n($containerID->str, $containerID->len), user_string_n($key->str, $key->len))
     print_process_info()
