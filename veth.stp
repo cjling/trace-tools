@@ -1,7 +1,9 @@
 #!/usr/bin/stap
 
 function print_time() {
-    printf("%s, %d\n", ctime(), gettimeofday_us())
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(), mirosec-sec*1000000)
 }
 
 function print_process_info() {
