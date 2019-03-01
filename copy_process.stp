@@ -1,0 +1,150 @@
+#!/usr/bin/stap
+
+probe kernel.function("copy_process")
+{
+    printf("copy_process: pid=%-10d execname=%-25s\n", pid(), execname())
+}
+
+probe kernel.function("security_task_create").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.statement("*@kernel/fork.c:1325") {
+    printf("goto bad_fork_free(fork.c:1325), user_processes exceeds task_rlimit\n")
+    print_backtrace()
+}
+
+probe kernel.function("copy_creds").return
+{
+    if ( $return == -11) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.statement("*@kernel/fork.c:1340") {
+    printf("goto bad_fork_cleanup_count(fork.c:1340), nr_threads more than max_threads, nr_threads=%d, max_threads=%d, pid=%d\n", $nr_threads, $max_threads, pid())
+    print_backtrace()
+}
+
+probe kernel.statement("*@kernel/fork.c:1343") {
+    printf("goto bad_fork_cleanup_count(fork.c:1343), try_module_get error, pid=%d\n", pid())
+    print_backtrace()
+}
+
+probe kernel.statement("*@kernel/fork.c:1390") {
+    if ( $retval == -11 ) {
+        printf("goto bad_fork_cleanup_cgroup(fork.c:1390), p->mempolicy is EAGAIN, pid=%d\n", pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("sched_fork").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("perf_event_init_task").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("audit_alloc").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_semundo").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_files").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_fs").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+
+probe kernel.function("copy_sighand").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+
+probe kernel.function("copy_signal").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_mm").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_namespaces").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_io").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("copy_thread").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
+
+probe kernel.function("cgroup_can_fork").return
+{
+    if ( $return == -11 ) {
+        printf("%s return:%d, pid=%d\n",probefunc(),$return,pid())
+        print_backtrace()
+    }
+}
