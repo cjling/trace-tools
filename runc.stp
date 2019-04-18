@@ -1,0 +1,34 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_stack() {
+    print_usyms(ubacktrace())
+    /* print_usyms(ucallers(-1)) */
+    printf("------------------\n\n")
+}
+
+/* probe process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer.(*linuxContainer).start"), */
+        /* process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer.(*restoredProcess).start"), */
+        /* process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer.(*initProcess).start"), */
+        /* process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer.(*nonChildProcess).start"), */
+        /* process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer/cgroups/fs.(*Manager).Apply"), */
+        /* process("/usr/local/sbin/runc").function("github.com/opencontainers/runc/libcontainer.(*setnsProcess).start") */
+/* { */
+    /* print_process_info() */
+    /* print_stack() */
+/* } */
+
+probe kernel.function("cgroup_write_X64"){
+    print_process_info()
+    printf("%s, %s\n\n",inode_name($file->f_inode), $userbuf$)
+}
