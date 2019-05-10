@@ -1,0 +1,29 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_stack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/libnetwork/osl.mountNetworkNamespace") {
+    printf("base:%s, ln:%s\n", user_string_n($basepath->str, $basepath->len), user_string_n($lnpath->str, $lnpath->len))
+    printf("%s\n", $$parms$$)
+    print_stack()
+}
+
+probe process("/usr/bin/dockerd").function("github.com/docker/docker/vendor/github.com/docker/libnetwork/osl.mountNetworkNamespace") {
+    printf("base:%s, ln:%s\n", user_string_n($basepath->str, $basepath->len), user_string_n($lnpath->str, $lnpath->len))
+    printf("%s\n", $$parms$$)
+    print_stack()
+}
