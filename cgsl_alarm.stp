@@ -1,0 +1,43 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_stack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+/* probe kernel.function("SYSC_unlink") */
+/* { */
+    /* pathname = user_string_quoted($pathname); */
+    /* print_time() */
+    /* print_process_info() */
+    /* printf("SYSC_unlink pathname: %s\n\n", pathname); */
+/* } */
+
+/* probe kernel.function("SYSC_unlinkat") */
+/* { */
+    /* pathname = user_string_quoted($pathname); */
+    /* print_time() */
+    /* print_process_info() */
+    /* printf("SYSC_unlinkat pathname: %s\n\n", pathname); */
+/* } */
+
+probe kernel.function("do_unlinkat")
+{
+    pathname = user_string_quoted($pathname);
+    print_time()
+    print_process_info()
+    printf("do_unlinkat pathname: %s\n", pathname);
+    printf("\n")
+    /* print_stack() */
+}

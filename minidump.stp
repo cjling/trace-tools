@@ -1,0 +1,64 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_stack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+/* probe process("/usr/bin/minidump").function("write_minidump") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/bin/minidump").function("get_pt_note_info") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/bin/minidump").function("update_dump_level") { */
+    /* print_stack() */
+/* } */
+
+
+/* probe process("/usr/bin/minidump").function("initial") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/bin/minidump").function("open_dump_bitmap") { */
+    /* print_stack() */
+/* } */
+
+
+/* probe process("/usr/bin/minidump").function("find_vmemmap_x86_64") { */
+    /* print_stack() */
+/* } */
+
+
+/* probe process("/usr/bin/minidump").function("print_vtop") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/bin/minidump").function("create_dump_bitmap") { */
+    /* print_stack() */
+/* } */
+
+
+/* probe process("/usr/bin/minidump").function("writeout_dumpfile") { */
+    /* print_stack() */
+/* } */
+
+probe timer.s(1) {
+    task = @cast(ffffffffae2d12b0, "task_struct", "kernel<linux/sched.h>")
+    printf("%d\n", task$)
+}
+
+
