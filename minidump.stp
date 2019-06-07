@@ -57,8 +57,8 @@ function print_stack() {
 /* } */
 
 probe timer.s(1) {
-    task = @cast(ffffffffae2d12b0, "task_struct", "kernel<linux/sched.h>")
-    printf("%d\n", task$)
+    task = &@cast(0xffff8f3665c74f10, "task_struct", "kernel<linux/sched.h>")
+    printf("%s\n", task->pid$)
 }
 
 
