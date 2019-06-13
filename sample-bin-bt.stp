@@ -9,6 +9,7 @@ global bts_p;
 global quit = 0;
 global bin_name = "eu-readelf"
 global bin_pid = -1
+global remain_time = 0
 
 
 probe timer.profile {
@@ -28,6 +29,10 @@ probe timer.profile {
         bts[ubacktrace()] <<< 1;
         bts_p[ubacktrace()] = sprint_usyms(ubacktrace());
     }
+}
+
+probe timer.s(1) {
+    warn(sprintf("%d\/%d", ++remain_time, 8))
 }
 
 probe timer.s(8) {
