@@ -1,0 +1,47 @@
+#!/usr/bin/stap
+
+probe begin {
+    warn(sprintf("Tracing %s in user-space only...\n", bin_name))
+}
+
+global bts;
+global bts_p;
+global quit = 0;
+global bin_name = "eu-readelf"
+global bin_pid = -1
+
+
+probe timer.profile {
+    if (quit) {
+        foreach (bt in bts- limit 1024) {
+            printf("%s", bts_p[bt])
+            printf("\t%d\n", @count(bts[bt]));
+        }
+        exit()
+    }
+
+    if (bin_pid == -1 && pid2execname(pid()) == bin_name) {
+        bin_pid = pid()
+    }
+
+    if (pid() == bin_pid) {
+        bts[ubacktrace()] <<< 1;
+        bts_p[ubacktrace()] = sprint_usyms(ubacktrace());
+    }
+}
+
+probe timer.s(8) {
+    nstacks = 0
+    foreach (bt in bts limit 1) {
+        nstacks++
+    }
+
+    if (nstacks == 0) {
+        warn("No backtraces found. Quitting now...\n")
+        exit()
+
+    } else {
+        warn("Time's up. Quitting now...(it may take a while)\n")
+        quit = 1
+    }
+}
