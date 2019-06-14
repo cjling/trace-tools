@@ -16,10 +16,6 @@ function print_stack() {
     printf("------------------\n\n")
 }
 
-/* probe process("/usr/bin/minidump").function("write_minidump") { */
-    /* print_stack() */
-/* } */
-
 /* probe process("/usr/bin/minidump").function("get_pt_note_info") { */
     /* print_stack() */
 /* } */
@@ -27,7 +23,6 @@ function print_stack() {
 /* probe process("/usr/bin/minidump").function("update_dump_level") { */
     /* print_stack() */
 /* } */
-
 
 /* probe process("/usr/bin/minidump").function("initial") { */
     /* print_stack() */
@@ -37,11 +32,9 @@ function print_stack() {
     /* print_stack() */
 /* } */
 
-
 /* probe process("/usr/bin/minidump").function("find_vmemmap_x86_64") { */
     /* print_stack() */
 /* } */
-
 
 /* probe process("/usr/bin/minidump").function("print_vtop") { */
     /* print_stack() */
@@ -51,14 +44,52 @@ function print_stack() {
     /* print_stack() */
 /* } */
 
-
 /* probe process("/usr/bin/minidump").function("writeout_dumpfile") { */
     /* print_stack() */
 /* } */
 
 probe timer.s(1) {
-    task = &@cast(0xffff8f3665c74f10, "task_struct", "kernel<linux/sched.h>")
+    task = &@cast(ffffffffaee16480, "task_struct", "kernel<linux/sched.h>")
+    /* printf("%s\n", task->tasks$) */
     printf("%s\n", task->pid$)
 }
+
+
+
+
+/* probe process("/usr/bin/eu-readelf").function("ebl_core_note_type_name").return { */
+    /* print_stack() */
+    /* printf("test\n") */
+    /* mdelay(5000) */
+    /* printf("%s\n", $return$) */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").function("ebl_core_note_type_name").return { */
+    /* printf("%s\n", $$return$) */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").function("handle_notes_data") { */
+    /* printf("%s\n", $start$) */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").function("ebl_core_note").return { */
+    /* printf("%d\n", user_int($nitems)) */
+    /* [> printf("%s\n", $items$) <] */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").function("handle_core_item") { */
+    /* printf("item->type: %s\n", $item->type$) */
+    /* printf("item->format: %s\n", $item->format$) */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").function("convert").return { */
+    /* printf("%s\n", user_string_n($data, $indata->d_size)) */
+    /* [> printf("%s\n", $items$) <] */
+/* } */
+
+/* probe process("/usr/bin/eu-readelf").statement("handle_core_item@/usr/src/debug/elfutils-0.172/src/readelf.c:11392") { */
+    /* printf("%s\n", user_string_n($s, $len)) */
+/* } */
 
 
