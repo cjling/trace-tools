@@ -11,8 +11,13 @@ function print_process_info() {
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
 }
 
-function print_stack() {
+function print_ustack() {
     print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
     printf("------------------\n\n")
 }
 

@@ -7,7 +7,8 @@ probe begin {
 global bts;
 global bts_p;
 global quit = 0;
-global bin_name = "eu-readelf"
+/* global bin_name = "eu-readelf" */
+global bin_name = "makedumpfile"
 global bin_pid = -1
 global remain_time = 0
 
@@ -32,10 +33,10 @@ probe timer.profile {
 }
 
 probe timer.s(1) {
-    warn(sprintf("%d\/%d", ++remain_time, 8))
+    warn(sprintf("%d\/%d", ++remain_time, 40))
 }
 
-probe timer.s(8) {
+probe timer.s(40) {
     nstacks = 0
     foreach (bt in bts limit 1) {
         nstacks++

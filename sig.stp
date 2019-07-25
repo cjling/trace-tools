@@ -1,7 +1,33 @@
 #!/usr/bin/stap
 
-probe signal.send{
+function print_time() {
     mirosec = gettimeofday_us()
     sec = gettimeofday_s()
-    printf("%s %d\(us\) %s was send to %s(pid:%d) by %s pid:%d\n",ctime(sec), mirosec-sec*1000000, sig_name, pid_name, sig_pid, execname(), pid())
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_ustack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+/* probe signal.send{ */
+    /* mirosec = gettimeofday_us() */
+    /* sec = gettimeofday_s() */
+    /* printf("%s %d\(us\) %s was send to %s(pid:%d) by %s pid:%d\n",ctime(sec), mirosec-sec*1000000, sig_name, pid_name, sig_pid, execname(), pid()) */
+/* } */
+
+probe kernel.function("task_sig")
+{
+    print_kstack()
 }

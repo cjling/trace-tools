@@ -16,80 +16,13 @@ function print_stack() {
     printf("------------------\n\n")
 }
 
-/* probe process("/usr/bin/minidump").function("get_pt_note_info") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("update_dump_level") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("initial") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("open_dump_bitmap") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("find_vmemmap_x86_64") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("print_vtop") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("create_dump_bitmap") { */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/minidump").function("writeout_dumpfile") { */
-    /* print_stack() */
-/* } */
-
-probe timer.s(1) {
-    task = &@cast(ffffffffaee16480, "task_struct", "kernel<linux/sched.h>")
-    /* printf("%s\n", task->tasks$) */
-    printf("%s\n", task->pid$)
+function print_time_stamp() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("call func:%s at %s %d\(us\)\n", ppfunc(), ctime(sec), mirosec-sec*1000000)
 }
 
-
-
-
-/* probe process("/usr/bin/eu-readelf").function("ebl_core_note_type_name").return { */
-    /* print_stack() */
-    /* printf("test\n") */
-    /* mdelay(5000) */
-    /* printf("%s\n", $return$) */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").function("ebl_core_note_type_name").return { */
-    /* printf("%s\n", $$return$) */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").function("handle_notes_data") { */
-    /* printf("%s\n", $start$) */
-    /* print_stack() */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").function("ebl_core_note").return { */
-    /* printf("%d\n", user_int($nitems)) */
-    /* [> printf("%s\n", $items$) <] */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").function("handle_core_item") { */
-    /* printf("item->type: %s\n", $item->type$) */
-    /* printf("item->format: %s\n", $item->format$) */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").function("convert").return { */
-    /* printf("%s\n", user_string_n($data, $indata->d_size)) */
-    /* [> printf("%s\n", $items$) <] */
-/* } */
-
-/* probe process("/usr/bin/eu-readelf").statement("handle_core_item@/usr/src/debug/elfutils-0.172/src/readelf.c:11392") { */
-    /* printf("%s\n", user_string_n($s, $len)) */
-/* } */
-
-
+probe process("/usr/local/bin/makedumpfile").function("insert_elf_prstatus_list") {
+    printf("%s\n", $$parms$$)
+    /* print_usyms(ubacktrace()) */
+}
