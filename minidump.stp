@@ -16,13 +16,56 @@ function print_stack() {
     printf("------------------\n\n")
 }
 
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
 function print_time_stamp() {
     mirosec = gettimeofday_us()
     sec = gettimeofday_s()
     printf("call func:%s at %s %d\(us\)\n", ppfunc(), ctime(sec), mirosec-sec*1000000)
 }
 
-probe process("/usr/local/bin/makedumpfile").function("insert_elf_prstatus_list") {
-    printf("%s\n", $$parms$$)
+/* probe process("/usr/local/bin/makedumpfile").function("write_kdump_pages_and_bitmap_cyclic") { */
     /* print_usyms(ubacktrace()) */
+/* } */
+
+/* probe process("/usr/local/bin/makedumpfile").function("write_elf_pages_cyclic") { */
+    /* print_usyms(ubacktrace()) */
+/* } */
+
+/* probe process("/usr/local/bin/makedumpfile").function("write_and_check_space") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/local/bin/makedumpfile").function("write_kdump_bitmap2_file") { */
+    /* [> printf("%s\n", $$parms$$) <] */
+    /* print_stack() */
+/* } */
+
+
+/* probe process("/usr/local/bin/makedumpfile").function("write_kdump_bitmap_file") { */
+    /* print_stack() */
+/* } */
+
+/* probe process("/usr/local/bin/makedumpfile").function("write_kdump_bitmap2_buffer") { */
+    /* [> printf("%s\n", $$parms$$) <] */
+    /* print_stack() */
+/* } */
+
+/* probe kernel.function("__free_one_page") { */
+    /* print_process_info() */
+    /* print_kstack() */
+/* } */
+
+
+probe kernel.function("vmstat_show"){
+    printf("%s\n", $$parms$$)
+    print_kstack()
+}
+
+probe kernel.function("vmstat_start").return {
+    printf("%s\n", $$return$$)
+    print_kstack()
 }
