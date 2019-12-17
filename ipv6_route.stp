@@ -1,0 +1,154 @@
+#!/usr/bin/stap
+
+/*
+probe module("nf_nat_masquerade_ipv6").statement("nf_nat_masquerade_ipv6@net/ipv6/netfilter/nf_nat_masquerade_ipv6.c:44")
+{
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+        printf("nf_nat_masquerade_ipv6@net/ipv6/netfilter/nf_nat_masquerade_ipv6.c:44")
+        printf("%x:", $src->in6_u->u6_addr8[0])
+        printf("%x:", $src->in6_u->u6_addr8[1])
+        printf("%x:", $src->in6_u->u6_addr8[2])
+        printf("%x:", $src->in6_u->u6_addr8[3])
+        printf("%x:", $src->in6_u->u6_addr8[4])
+        printf("%x:", $src->in6_u->u6_addr8[5])
+        printf("%x:", $src->in6_u->u6_addr8[6])
+        printf("%x:", $src->in6_u->u6_addr8[7])
+        printf("%x:", $src->in6_u->u6_addr8[8])
+        printf("%x:", $src->in6_u->u6_addr8[9])
+        printf("%x:", $src->in6_u->u6_addr8[10])
+        printf("%x:", $src->in6_u->u6_addr8[11])
+        printf("%x:", $src->in6_u->u6_addr8[12])
+        printf("%x:", $src->in6_u->u6_addr8[13])
+        printf("%x:", $src->in6_u->u6_addr8[14])
+        printf("%x\n", $src->in6_u->u6_addr8[15])
+        printf("------------------\n\n")
+    }
+}
+*/
+
+
+
+
+
+
+probe kernel.statement("fib6_rule_lookup@net/ipv6/fib6_rules.c:77")
+{
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+        printf("fib6_rule_lookup@net/ipv6/fib6_rules.c:77\n")
+        printf("%s\n", $rt$)
+        printf("%s\n", $rt->rt6i_prefsrc->plen$)
+        print_kstack()
+
+    }
+}
+
+probe kernel.statement("fib6_rule_lookup@net/ipv6/fib6_rules.c:85")
+{
+
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+        printf("fib6_rule_lookup@net/ipv6/fib6_rules.c:85\n")
+        printf("%s\n", $net->ipv6->ip6_null_entry$$)
+    }
+}
+
+
+
+
+
+
+probe kernel.statement("ipv6_dev_get_saddr@net/ipv6/addrconf.c:1497")
+{
+
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+        printf("ipv6_dev_get_saddr@net/ipv6/addrconf.c:1497\n")
+        printf("%x:", $saddr->in6_u->u6_addr8[0])
+        printf("%x:", $saddr->in6_u->u6_addr8[1])
+        printf("%x:", $saddr->in6_u->u6_addr8[2])
+        printf("%x:", $saddr->in6_u->u6_addr8[3])
+        printf("%x:", $saddr->in6_u->u6_addr8[4])
+        printf("%x:", $saddr->in6_u->u6_addr8[5])
+        printf("%x:", $saddr->in6_u->u6_addr8[6])
+        printf("%x:", $saddr->in6_u->u6_addr8[7])
+        printf("%x:", $saddr->in6_u->u6_addr8[8])
+        printf("%x:", $saddr->in6_u->u6_addr8[9])
+        printf("%x:", $saddr->in6_u->u6_addr8[10])
+        printf("%x:", $saddr->in6_u->u6_addr8[11])
+        printf("%x:", $saddr->in6_u->u6_addr8[12])
+        printf("%x:", $saddr->in6_u->u6_addr8[13])
+        printf("%x:", $saddr->in6_u->u6_addr8[14])
+        printf("%x\n", $saddr->in6_u->u6_addr8[15])
+        printf("------------------\n\n")
+    }
+}
+
+
+
+
+
+
+
+probe kernel.statement("ip6_route_get_saddr@net/ipv6/route.c:2568")
+{
+
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+            if($rt->rt6i_prefsrc->plen)
+            {
+        printf("ip6_route_get_saddr@net/ipv6/route.c:2568\n")
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[0])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[1])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[2])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[3])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[4])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[5])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[6])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[7])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[8])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[9])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[10])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[11])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[12])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[13])
+        printf("%x:", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[14])
+        printf("%x\n", $rt->rt6i_prefsrc->addr->in6_u->u6_addr8[15])
+        printf("------------------\n\n")
+        print_kstack()
+        }
+    }
+}
+
+
+
+probe kernel.statement("ip6_dst_lookup_tail@net/ipv6/ip6_output.c:897")
+{
+
+    if(cmdline_str() == "psql host=2001::dbc:6a port=1033 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    {
+        printf("ip6_dst_lookup_tail@net/ipv6/ip6_output.c:897\n")
+        printf("ip6_dst_lookup_tail saddr\n")
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[0])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[1])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[2])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[3])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[4])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[5])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[6])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[7])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[8])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[9])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[10])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[11])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[12])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[13])
+        printf("%x:", $fl6->saddr->in6_u->u6_addr8[14])
+        printf("%x\n", $fl6->saddr->in6_u->u6_addr8[15])
+        printf("------------------\n\n")
+        print_kstack()
+
+}
+}
+
