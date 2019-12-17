@@ -60,12 +60,7 @@ function print_time_stamp() {
 /* } */
 
 
-probe kernel.function("vmstat_show"){
+probe kernel.function("get_task_state"){
     printf("%s\n", $$parms$$)
-    print_kstack()
-}
-
-probe kernel.function("vmstat_start").return {
-    printf("%s\n", $$return$$)
     print_kstack()
 }
