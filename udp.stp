@@ -1,0 +1,23 @@
+#!/usr/bin/stap
+
+function print_process_info() {
+    printf("pid:%d, tid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), tid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+probe udp.recvmsg.return
+{
+    if(tid()==target()){
+        print_process_info()
+        printf("from %s:%d, to %s:%d\n", format_ipaddr(@cast($msg->msg_name, "sockaddr_in")->sin_addr->s_addr, @cast($msg->msg_name, "sockaddr_in")->sin_family),
+                                         ntohs(@cast($msg->msg_name, "sockaddr_in")->sin_port),
+                                         saddr,
+                                         sport)
+    }
+}
+
