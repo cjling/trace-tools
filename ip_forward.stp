@@ -1,0 +1,88 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_ustack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+/* probe kernel.function("ip_forward") { */
+    /* if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1") */
+    /* { */
+        /* print_process_info() */
+        /* print_kstack() */
+    /* } */
+/* } */
+
+
+probe kernel.function("ip_forward").return {
+     if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("\n\n\n")
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:80")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 80)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:83")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 83)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:92")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 92)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:102")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 102)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:110")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 110)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:117")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 117)
+}
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:123")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 123)
+}
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:147")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 147)
+}
+
+probe   kernel.statement("ip_forward@net/ipv4/ip_forward.c:155")
+{
+    if(cmdline_str() == "psql host=110.0.0.162 port=1034 user=postgres password=Cloud123 dbname=postgres application_name=utm1")
+    printf("call %d\n", 155)
+}
