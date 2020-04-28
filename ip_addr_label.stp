@@ -1,0 +1,7 @@
+#!/usr/bin/stap
+
+probe kernel.statement("ip6_route_get_saddr")
+{
+    print_process_info()
+    print_kstack()
+}
