@@ -1,0 +1,77 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_ustack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+function is_target:long() {
+    if(target() == 99)
+        return 1
+    if(pid() == target())
+        return 1
+    return 0
+}
+
+probe kernel.function("dev_forward_skb")
+{
+}
+
+/* probe module("ipvlan").statement("ipvlan_xmit_mode_l2@drivers/net/ipvlan/ipvlan_core.c:611") */
+/* { */
+    /* if(is_target()) */
+    /* { */
+        /* printf("%s\n", $skb$) */
+        /* print_kstack() */
+    /* } */
+/* } */
+
+probe module("ipvlan").statement("ipvlan_addr_lookup@drivers/net/ipvlan/ipvlan_core.c:390")
+{
+    if(is_target())
+    {
+        printf("\n390\n")
+        print_process_info()
+        printf("sa:%s\n", format_ipaddr($ip4h->saddr, 2))
+        printf("da:%s\n", format_ipaddr($ip4h->daddr, 2))
+    }
+}
+
+probe module("ipvlan").statement("ipvlan_ht_addr_lookup@drivers/net/ipvlan/ipvlan_core.c:86")
+{
+    if(is_target())
+    {
+        printf("\n86\n")
+        print_process_info()
+        printf("port:%p\n", $port)
+        printf("hlhead[(hash)%d]:%p\n", $hash, $port->hlhead[$hash]->first)
+        /* for(i = 0; i < 256; i++) */
+            /* printf("hlhead[%d]:%s\n", i, $port->hlhead[i]$) */
+    }
+}
+
+/* probe module("ipvlan").statement("ipvlan_ht_addr_lookup@drivers/net/ipvlan/ipvlan_core.c:87") */
+/* { */
+    /* if(is_target()) */
+    /* { */
+        /* printf("\n87\n") */
+        /* print_process_info() */
+        /* printf("addr:%s\n", format_ipaddr($addr->ipu->ip4->s_addr, 2)) */
+    /* } */
+/* } */
