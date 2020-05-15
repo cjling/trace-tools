@@ -162,8 +162,9 @@ probe module("veth").function("veth_dellink")
 
 probe kernel.function("dev_change_net_namespace")
 {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev:%s:%d, net:%p to %p\n\n",
-            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $dev->nd_net, $net)
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, dev:%s:%d, net(inode):[%d] to [%d]\n\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), $dev->name$, $dev->ifindex, $dev->nd_net->ns->inum, $net->ns->inum)
+
     print_syms(backtrace())
     printf("------------------\n\n")
 }
