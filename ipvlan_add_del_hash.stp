@@ -7,7 +7,7 @@ function print_time() {
 }
 
 function print_process_info() {
-    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:\"%s\"\n",
             pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
 }
 
@@ -21,16 +21,20 @@ function print_kstack() {
     printf("------------------\n\n")
 }
 
-
-probe module("ipvlan").function("ipvlan_addr4_event")
-{
+function print_gap() {
     printf("\n")
     print_time()
     print_process_info()
+}
+
+
+probe module("ipvlan").function("ipvlan_addr4_event")
+{
+    print_gap()
     if4 = &@cast($ptr, "in_ifaddr")
     if($event == 1)
     {
-        printf("add %s to interface %d: %s\n",
+        printf("add %s event to interface (%d): %s\n",
                 format_ipaddr(if4->ifa_address ,2),
                 if4->ifa_dev->dev->ifindex,
                 if4->ifa_dev->dev->name$)
@@ -38,63 +42,66 @@ probe module("ipvlan").function("ipvlan_addr4_event")
     if($event == 2)
     {
 
-        printf("del %s from interface %d: %s\n",
+        printf("del %s event from interface (%d): %s\n",
                 format_ipaddr(if4->ifa_address ,2),
                 if4->ifa_dev->dev->ifindex,
                 if4->ifa_dev->dev->name$)
     }
-    print_kstack()
 }
 
 probe module("ipvlan").function("ipvlan_ht_addr_add")
 {
-    if($addr->atype != 0)
+    if($addr->atype == 2)
     {
-        printf("\n")
-        print_time()
-        print_process_info()
-        printf("add ip:%s to ipvlan %d: %s\n", format_ipaddr($addr->ipu->ip4->s_addr, 2), $ipvlan->dev->ifindex, $ipvlan->dev->name$)
+        print_gap()
+        printf("add hash(%s) on interface (%d): %s\n",
+                format_ipaddr($addr->ipu->ip4->s_addr, 2),
+                $ipvlan->dev->ifindex,
+                $ipvlan->dev->name$)
     }
 }
 
-probe module("ipvlan").statement("ipvlan_ht_addr_add@drivers/net/ipvlan/ipvlan_core.c:101")
-{
-    if($addr->atype != 0)
-    {
-        printf("\n")
-        print_time()
-        print_process_info()
-        printf("addr:%s\n", format_ipaddr($addr->ipu->ip4->s_addr, 2))
-        printf("hlhead[(hash)%d], hlnode:%p\n", $hash, &$addr->hlnode)
-        printf("port:%p\n", $port)
+/* probe module("ipvlan").statement("ipvlan_ht_addr_add@drivers/net/ipvlan/ipvlan_core.c:101") */
+/* { */
+    /* if($addr->atype == 2) */
+    /* { */
+        /* printf("\n") */
+        /* print_time() */
+        /* print_process_info() */
+        /* printf("addr:%s\n", format_ipaddr($addr->ipu->ip4->s_addr, 2)) */
+        /* printf("hlhead[(hash)%d], hlnode:%p\n", $hash, &$addr->hlnode) */
+        /* printf("port:%p\n", $port) */
         /* for(i = 0; i < 256; i++) */
             /* printf("hlhead[%d]:%p\n", i, $port->hlhead[i]->first) */
-        print_kstack()
-    }
+    /* } */
+/* } */
+
+probe module("ipvlan").statement("ipvlan_addr4_validator_event@drivers/net/ipvlan/ipvlan_main.c:1030")
+{
+    print_gap()
 }
 
 probe module("ipvlan").function("ipvlan_ht_addr_del")
 {
-    printf("\n")
-    print_time()
-    print_process_info()
-    printf("addr:%s\n", format_ipaddr($addr->ipu->ip4->s_addr, 2))
-    printf("del hlnode:%p\n", &$addr->hlnode)
-    print_kstack()
+    if($addr->atype == 2)
+    {
+        print_gap()
+        printf("del hash(%s) on interface (%d): %s\n",
+                format_ipaddr($addr->ipu->ip4->s_addr, 2),
+                $addr->master->dev->ifindex,
+                $addr->master->dev->name$)
+        /* printf("del hlnode:%p\n", &$addr->hlnode) */
+    }
 }
 
 probe kernel.function("dev_change_net_namespace")
 {
-    printf("\n")
-    print_time()
-    print_process_info()
-    printf("dev:%s:%d, net:%p to %p\n", $dev->name$, $dev->ifindex, $dev->nd_net, $net)
+    print_gap()
+    printf("move interface (%d): %s, net(inode):[%d] to [%d]\n", $dev->ifindex, $dev->name$, $dev->nd_net->net->ns->inum, $net->ns->inum)
 }
 
 probe kernel.function("dev_change_name")
 {
-    printf("\n")
-    print_time()
-    print_process_info()
-    printf("dev_id:%d, old_name:%s, new_name:%s\n", $dev->ifindex, $dev->name$, $newname$)
+    print_gap()
+    printf("rename interface (%d), old_name:%s, new_name:%s\n", $dev->ifindex, $dev->name$, $newname$)
 }
