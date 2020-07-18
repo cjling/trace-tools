@@ -21,13 +21,16 @@ function print_kstack() {
     printf("------------------\n\n")
 }
 
-/* probe signal.send{ */
-    /* mirosec = gettimeofday_us() */
-    /* sec = gettimeofday_s() */
-    /* printf("%s %d\(us\) %s was send to %s(pid:%d) by %s pid:%d\n",ctime(sec), mirosec-sec*1000000, sig_name, pid_name, sig_pid, execname(), pid()) */
-/* } */
-
-probe kernel.function("task_sig")
-{
-    print_kstack()
+probe signal.send{
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\) %s was send to %s(pid:%d) by %s pid:%d\n",
+            ctime(sec), mirosec-sec*1000000, sig_name, pid_name, sig_pid, execname(), pid())
+    pid = pid()
+    while(pid2task(pid))
+    {
+        pid = pid2task(pid)->parent->pid
+        printf("--%d", pid)
+    }
+    printf("\n")
 }
