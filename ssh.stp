@@ -1,0 +1,89 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_ustack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+/* probe kernel.function("cgroup_rmdir") */
+/* { */
+    /* print_process_info() */
+    /* print_kstack() */
+/* } */
+
+/* probe kernel.function("do_exit") */
+/* { */
+    /* print_process_info() */
+    /* print_kstack() */
+/* } */
+
+/* probe kernel.function("cgroup_destroy_locked") */
+/* { */
+    /* print_process_info() */
+    /* print_kstack() */
+/* } */
+
+/* probe kernel.function("proc_cgroup_show").return */
+/* { */
+    /* print_process_info() */
+    /* printf("%s\n", $v$) */
+    /* printf("%s\n", inode_path($m->file->f_inode)) */
+    /* print_kstack() */
+/* } */
+
+/* probe kernel.statement("unix_dgram_sendmsg@net/unix/af_unix.c:1769") */
+/* { */
+    /* print_process_info() */
+    /* printf("1769\n") */
+    /* print_kstack() */
+/* } */
+
+probe kernel.function("unix_dgram_sendmsg")
+{
+    print_process_info()
+    printf("unix path:%s\n", @cast($msg->msg_name, "sockaddr_un")->sun_path$)
+    print_kstack()
+}
+
+/* probe kernel.statement("unix_dgram_sendmsg@net/unix/af_unix.c:1771") */
+/* { */
+    /* print_process_info() */
+    /* printf("1771\n") */
+    /* printf("timeo:%s\n", $timeo$) */
+    /* print_kstack() */
+/* } */
+
+probe kernel.function("unix_dgram_recvmsg").return
+{
+    print_process_info()
+    printf("unix path:%s\n", @cast($msg->msg_name, "sockaddr_un")->sun_path$)
+    print_kstack()
+}
+
+probe kernel.function("unix_socketpair")
+{
+    print_process_info()
+    print_kstack()
+}
+
+probe kernel.function("SyS_pipe")
+{
+    print_process_info()
+    print_kstack()
+}

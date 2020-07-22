@@ -1,0 +1,48 @@
+#!/usr/bin/stap
+
+function print_time() {
+    mirosec = gettimeofday_us()
+    sec = gettimeofday_s()
+    printf("%s %d\(us\)\n", ctime(sec), mirosec-sec*1000000)
+}
+
+function print_process_info() {
+    printf("pid:%d, pid name:%s, ppid:%d, ppid name:%s, func:%s, cmd:%s\n",
+            pid(), pid2execname(pid()), ppid(), pid2execname(ppid()), ppfunc(), cmdline_str())
+}
+
+function print_ustack() {
+    print_usyms(ubacktrace())
+    printf("------------------\n\n")
+}
+
+function print_kstack() {
+    print_syms(backtrace())
+    printf("------------------\n\n")
+}
+
+function is_target:long() {
+    if(target() == 99)
+        return 1
+    if(pid() == target())
+        return 1
+    return 0
+}
+
+probe kernel.function("arp_rcv")
+{
+    if(is_target())
+    {
+        print_process_info()
+        print_kstack()
+    }
+}
+
+probe kernel.function("arp_send")
+{
+    if(is_target())
+    {
+        print_process_info()
+        print_kstack()
+    }
+}

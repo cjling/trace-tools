@@ -10,14 +10,29 @@ function print_kstack() {
     printf("------------------\n\n")
 }
 
-probe udp.recvmsg.return
+/* probe udp.recvmsg.return */
+/* { */
+    /* if(tid()==target()){ */
+        /* print_process_info() */
+        /* printf("from %s:%d, to %s:%d\n", format_ipaddr(@cast($msg->msg_name, "sockaddr_in")->sin_addr->s_addr, @cast($msg->msg_name, "sockaddr_in")->sin_family), */
+                                         /* ntohs(@cast($msg->msg_name, "sockaddr_in")->sin_port), */
+                                         /* saddr, */
+                                         /* sport) */
+    /* } */
+/* } */
+
+probe kernel.statement("udp_recvmsg@net/ipv4/udp.c:1802")
 {
-    if(tid()==target()){
-        print_process_info()
-        printf("from %s:%d, to %s:%d\n", format_ipaddr(@cast($msg->msg_name, "sockaddr_in")->sin_addr->s_addr, @cast($msg->msg_name, "sockaddr_in")->sin_family),
-                                         ntohs(@cast($msg->msg_name, "sockaddr_in")->sin_port),
-                                         saddr,
-                                         sport)
+    printf("\n")
+    printf("%s probe:udp.recvmsg.return\n", ctime())
+    print_process_info()
+    if($msg != 0 && $msg->msg_name != 0)
+    {
+        printf("from %s:%d\n",
+                format_ipaddr(@cast($msg->msg_name, "sockaddr_in")->sin_addr->s_addr, @cast($msg->msg_name, "sockaddr_in")->sin_family),
+                ntohs(@cast($msg->msg_name, "sockaddr_in")->sin_port))
     }
+    printf("to %s:%d, socket inode no:%s\n", saddr, sport, $sk->sk_socket->file->f_inode->i_ino$$)
+    print_kstack()
 }
 

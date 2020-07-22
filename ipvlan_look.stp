@@ -42,14 +42,16 @@ probe kernel.function("dev_forward_skb")
     /* } */
 /* } */
 
-probe module("ipvlan").statement("ipvlan_addr_lookup@drivers/net/ipvlan/ipvlan_core.c:390")
+probe module("ipvlan").statement("ipvlan_addr_lookup@drivers/net/ipvlan/ipvlan_core.c:406")
 {
     if(is_target())
     {
-        printf("\n390\n")
+        printf("\n406\n")
         print_process_info()
-        printf("sa:%s\n", format_ipaddr($ip4h->saddr, 2))
-        printf("da:%s\n", format_ipaddr($ip4h->daddr, 2))
+        for(i = 0; i < 256; i++)
+            printf("hlhead[%d]:%s\n", i, $port->hlhead[i]$)
+        /* printf("sa:%s\n", format_ipaddr($ip4h->saddr, 2)) */
+        /* printf("da:%s\n", format_ipaddr($ip4h->daddr, 2)) */
     }
 }
 
